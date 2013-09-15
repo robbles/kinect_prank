@@ -23,6 +23,13 @@ PoseSeries poses;
 ArrayList<Skeleton> skeletons;
 ArrayList<PImage> images;
 
+GameState state;
+
+PImage splash_screen, check_results;
+Prank prank;
+
+int finishTime = 0;
+
 void setup()
 {
   println("Starting up...");
@@ -70,7 +77,7 @@ void setup()
       new Marker("R", 100, -250, 1500)
   ));
   poses.add(new Pose("Bend your knees and your elbows",
-      new Marker("HEAD", 0, 200, 1500), 
+      new Marker("HEAD", 0, 100, 1500), 
       ignore, 
       ignore
   ));
@@ -82,7 +89,7 @@ void setup()
   poses.add(new Pose("Bend your right elbow and place your hand on your hip",
       new Marker("HEAD", 0, 450, 1500), 
       ignore,
-      new Marker("R", 150, 0, 1500)
+      new Marker("R", 180, 0, 1500)
   ));
   poses.add(new Pose("Extend your left arm",
       new Marker("HEAD", 0, 450, 1500), 
@@ -92,14 +99,62 @@ void setup()
   poses.add(new Pose("Tilt your body sideways from the waist",
       new Marker("HEAD", -250, 250, 1500), 
       new Marker("L", -700, 0, 1500), 
-      new Marker("R", 100, 0, 1500)
+      ignore
   ));
   
   skeletons = new ArrayList<Skeleton>();
   images = new ArrayList<PImage>();
+  
+  state = GameState.SPLASH_SCREEN;
+  
+  splash_screen = loadImage("splash.png");
+  check_results = loadImage("CheckResults.png");
+
+  prank = new Prank(this);
+  prank.intro();
 }
 
-void draw()
+void draw() {
+ 
+ switch(state) {
+  case SPLASH_SCREEN:
+    drawSplashScreen();
+    
+    // update the cam
+    context.update();
+    break;
+    
+  case CAPTURE_POSES:
+    drawPoseCapture();
+    break;
+    
+  case CHECK_RESULTS:
+    drawCheckResultsScreen();
+    break;
+    
+  case PRANK:
+    prank.run(images, skeletons);
+    break;
+ } 
+}
+
+void drawSplashScreen() {
+  image(splash_screen, 0, 0, width, height);
+}
+
+void drawCheckResultsScreen() {
+  image(check_results, 0, 0, width, height);
+  
+  if(millis() - finishTime > 4000) {
+    state = GameState.PRANK;
+          
+    // This should only be run once
+    prank.start();
+
+  }
+}
+
+void drawPoseCapture()
 {
   // update the cam
   context.update();
@@ -140,14 +195,20 @@ void draw()
     println("Advanced to next pose...");
     
     // Take snapshot of current image and player skeleton
-    images.add(context.rgbImage());
+    PImage snapshot = createImage(width, height, RGB);
+    PImage rgb = context.rgbImage();
+    snapshot.copy(rgb, 0, 0, 640, 480, 0, 0, width, height);
+    images.add(snapshot);
+    
     skeletons.add(new Skeleton(context, userId));
     
     if(poses.complete()) {
       // Game over!!!!
       println("Player is done! Now we take a picture.");
       println("We have " + images.size() + " images and " + skeletons.size() + " skeletons to process.");
-      exit();
+      
+      state = GameState.CHECK_RESULTS;
+      finishTime = millis();
     }
   }
 }
@@ -207,6 +268,12 @@ void onNewUser(SimpleOpenNI curContext, int userId)
 {
   println("New user: " + userId);
 
+  if(millis() > 5000) {
+    if(state == GameState.SPLASH_SCREEN) {
+      state = GameState.CAPTURE_POSES;
+    }
+  }
+  
   curContext.startTrackingSkeleton(userId);
 }
 

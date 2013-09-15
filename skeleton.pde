@@ -5,6 +5,7 @@ class Skeleton {
   
   PVector head3d, neck3d, left_shoulder3d, left_elbow3d, right_shoulder3d, right_elbow3d, torso3d, left_hip3d, left_knee3d, right_hip3d, right_knee3d, left_hand3d, right_hand3d, left_foot3d, right_foot3d;
   PVector head, neck, left_shoulder, left_elbow, right_shoulder, right_elbow, torso, left_hip, left_knee, right_hip, right_knee, left_hand, right_hand, left_foot, right_foot;
+  PVector hips;
 
   Skeleton(SimpleOpenNI context, int user) {
     this.context = context;
@@ -51,6 +52,9 @@ class Skeleton {
     this.right_hand = convertPoint(this.right_hand3d);
     this.left_foot = convertPoint(this.left_foot3d);
     this.right_foot = convertPoint(this.right_foot3d);
+    
+    // convenience calculations
+    this.hips = PVector.lerp(this.left_hip, this.right_hip, 0.5);
   }
 }
 

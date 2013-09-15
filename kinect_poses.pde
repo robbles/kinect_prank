@@ -29,6 +29,7 @@ PImage splash_screen, check_results;
 Prank prank;
 
 int finishTime = 0;
+int setup = 0;
 
 void setup()
 {
@@ -53,6 +54,8 @@ void setup()
   }
   println("OpenNI is ready!");
 
+  setup = millis();
+  
   // enable depthMap generation (required for skeleton generation)
   context.enableDepth();
 
@@ -63,7 +66,7 @@ void setup()
   context.enableRGB();
 
   // Setup series of poses with a delay in between each one
-  poses = new PoseSeries(3000);
+  poses = new PoseSeries(2000);
   Marker ignore = new Marker();
   
   poses.add(new Pose("Line up your head and hands with the red circles",
@@ -94,12 +97,12 @@ void setup()
   poses.add(new Pose("Extend your left arm",
       new Marker("HEAD", 0, 450, 1500), 
       new Marker("L", -600, 300, 1500), 
-      ignore
+      new Marker("R", 180, 0, 1500)
   ));
   poses.add(new Pose("Tilt your body sideways from the waist",
       new Marker("HEAD", -250, 250, 1500), 
       new Marker("L", -700, 0, 1500), 
-      ignore
+      new Marker("R", 180, 0, 1500)
   ));
   
   skeletons = new ArrayList<Skeleton>();
@@ -268,7 +271,7 @@ void onNewUser(SimpleOpenNI curContext, int userId)
 {
   println("New user: " + userId);
 
-  if(millis() > 5000) {
+  if((millis() - setup) > 5000) {
     if(state == GameState.SPLASH_SCREEN) {
       state = GameState.CAPTURE_POSES;
     }

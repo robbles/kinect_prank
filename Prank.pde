@@ -159,27 +159,25 @@ class Prank {
   int short_and_stout(PImage img, Skeleton skeleton)
   {
     int delay = 2000; 
-    image(img, 0, 0, width, height);
+    
+    im_a_little_teapot(img, skeleton);
+    
     // put center of teapot at center of hips
     image(pot, skeleton.hips.x - pot.width/ 2.0, skeleton.hips.y - pot.height/ 2.0);
 
     // put bottom of lid at top of head
-    image(lid, skeleton.head.x - lid.width/ 2.0, skeleton.head.y - pot.height);
+    image(lid, skeleton.head.x - lid.width/ 2.0, skeleton.head.y - 150);
     return delay;
   }
 
   int here_is_my_handle (PImage img, Skeleton skeleton)
   {
-    int delay = 2000; 
-    image(img, 0, 0, width, height);
-    // put center of teapot at center of hips
-    image(pot, skeleton.hips.x - pot.width/ 2.0, skeleton.hips.y - pot.height/ 2.0);
-
-    // put bottom of lid at top of head
-    image(lid, skeleton.head.x - lid.width/ 2.0, skeleton.head.y - pot.height);
-
+    int delay = 2000;
+    
+    short_and_stout(img, skeleton);
+    
     //attach top left of handle to right shoulder
-    image(handle, skeleton.right_shoulder.x, skeleton.right_shoulder.y);
+    image(handle, skeleton.right_shoulder.x + 100, skeleton.right_shoulder.y);
 
     return delay;
   }
@@ -187,74 +185,44 @@ class Prank {
   int here_is_my_spout (PImage img, Skeleton skeleton)
   {
     int delay = 2000; 
-    image(img, 0, 0, width, height);
-    // put center of teapot at center of hips
-    image(pot, skeleton.hips.x - pot.width/ 2.0, skeleton.hips.y - pot.height/ 2.0);
-
-    // put bottom of lid at top of head
-    image(lid, skeleton.head.x - lid.width/ 2.0, skeleton.head.y - pot.height);
-
-    //attach top left of handle to right shoulder
-    image(handle, skeleton.right_shoulder.x, skeleton.right_shoulder.y);
-
+    
+    here_is_my_handle(img, skeleton);
+    
     //attach top right of spout to left shoulder
-    image(spout, skeleton.left_shoulder.x - spout.width, skeleton.left_shoulder.y);
+    image(spout, skeleton.left_shoulder.x - spout.width -100, skeleton.left_shoulder.y);
     return delay;
   }
 
   int when_i_get_all_steamed_up (PImage img, Skeleton skeleton)
   {
     int delay = 2000; 
-    image(img, 0, 0, width, height);
-
-    // put center of teapot at center of hips
-    image(pot, skeleton.hips.x - pot.width/ 2.0, skeleton.hips.y - pot.height/ 2.0);
-
-    // put bottom of lid at top of head
-    image(lid, skeleton.head.x - lid.width/ 2.0, skeleton.head.y - pot.height);
-
-    //attach top left of handle to right shoulder
-    image(handle, skeleton.right_shoulder.x, skeleton.right_shoulder.y);
-
-    //attach top right of spout to left shoulder
-    image(spout, skeleton.left_shoulder.x - spout.width, skeleton.left_shoulder.y);
-
+    
+    here_is_my_spout(img, skeleton);
+    
     //attach bottom of steam to top center of head
-    image(steam, skeleton.head.x - steam.width/ 2.0, skeleton.head.y - steam.height);
+    
     return delay;
   }
 
   int hear_me_shout (PImage img, Skeleton skeleton)
   {
     int delay = 2000; 
-    image(img, 0, 0, width, height);
+
+    when_i_get_all_steamed_up(img, skeleton);
     
-    // put center of teapot at center of hips
-    image(pot, skeleton.hips.x - pot.width/ 2.0, skeleton.hips.y - pot.height/ 2.0 - 200);
-
-    // put bottom of lid at top of head
-    image(lid, skeleton.head.x - lid.width/ 2.0, skeleton.head.y - pot.height);
-
-    //attach top left of handle to right shoulder
-    image(handle, skeleton.right_shoulder.x + 200, skeleton.right_shoulder.y);
-
-    //attach top right of spout to left shoulder
-    image(spout, skeleton.left_shoulder.x - spout.width - 200, skeleton.left_shoulder.y);
-
-    //attach bottom of steam to top center of head
-    image(steam, skeleton.head.x - steam.width/ 2.0, skeleton.head.y);
-
     //put tea at the end of left hand
-    image(tea, skeleton.left_hand.x - tea.width + 200, skeleton.left_hand.y);
-    
+    image(steam, skeleton.head.x - steam.width/ 2.0, skeleton.head.y - steam.height);
+
     return delay;
   }
 
   int tip_me_over_and_pour_me_out (PImage img, Skeleton skeleton)
   {
     int delay = 4000; 
-    image(img, 0, 0, width, height);
     
+    image(img, 0, 0, width, height);
+    image(tea, skeleton.left_hand.x - tea.width + 100, skeleton.left_hand.y);
+
     return delay;
   }
 

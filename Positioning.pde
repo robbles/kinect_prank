@@ -137,7 +137,7 @@ class PoseSeries {
       }
     } else {
       // Reset counter if player is not in position
-      this.poseHit = 0;
+      //this.poseHit = 0;
     }
     
     

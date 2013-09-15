@@ -20,6 +20,9 @@ float SCALE_FACTOR = 1024.0 / 640.0;
 
 PoseSeries poses;
 
+ArrayList<Skeleton> skeletons;
+ArrayList<PImage> images;
+
 void setup()
 {
   println("Starting up...");
@@ -43,7 +46,7 @@ void setup()
   }
   println("OpenNI is ready!");
 
-  // enable depthMap generation 
+  // enable depthMap generation (required for skeleton generation)
   context.enableDepth();
 
   // enable skeleton generation for all joints
@@ -53,35 +56,53 @@ void setup()
   context.enableRGB();
 
   // Setup series of poses with a delay in between each one
-  poses = new PoseSeries(1000);
+  poses = new PoseSeries(3000);
+  Marker ignore = new Marker();
+  
   poses.add(new Pose("Line up your head and hands with the red circles",
-      // head
-      new PositionGoal("HEAD", 0, 500, 1500), 
-      // left hand
-      new PositionGoal("LEFT HAND", -400, 300, 1500), 
-      // right hand
-      new PositionGoal("RIGHT HAND", 400, 300, 1500)
+      new Marker("HEAD", 0, 450, 1500), 
+      new Marker("L", -600, 300, 1500), 
+      new Marker("R", 600, 300, 1500)
   ));
   poses.add(new Pose("Place your arms at your sides",
-      // head
-      new PositionGoal("HEAD", 0, 500, 1500), 
-      // left hand
-      new PositionGoal("LEFT HAND", -400, -100, 1500), 
-      // right hand
-      new PositionGoal("RIGHT HAND", 400, -100, 1500)
+      new Marker("HEAD", 0, 450, 1500), 
+      new Marker("L", -100, -250, 1500), 
+      new Marker("R", 100, -250, 1500)
   ));
-    
+  poses.add(new Pose("Bend your knees and your elbows",
+      new Marker("HEAD", 0, 200, 1500), 
+      ignore, 
+      ignore
+  ));
+  poses.add(new Pose("Stand up straight again",
+      new Marker("HEAD", 0, 450, 1500), 
+      new Marker("L", -100, -250, 1500), 
+      new Marker("R", 100, -250, 1500)
+  ));
+  poses.add(new Pose("Bend your right elbow and place your hand on your hip",
+      new Marker("HEAD", 0, 450, 1500), 
+      ignore,
+      new Marker("R", 150, 0, 1500)
+  ));
+  poses.add(new Pose("Extend your left arm",
+      new Marker("HEAD", 0, 450, 1500), 
+      new Marker("L", -600, 300, 1500), 
+      ignore
+  ));
+  poses.add(new Pose("Tilt your body sideways from the waist",
+      new Marker("HEAD", -250, 250, 1500), 
+      new Marker("L", -700, 0, 1500), 
+      new Marker("R", 100, 0, 1500)
+  ));
+  
+  skeletons = new ArrayList<Skeleton>();
+  images = new ArrayList<PImage>();
 }
 
 void draw()
 {
   // update the cam
   context.update();
-
-  // draw depthImageMap
-  //image(context.depthImage(),0,0);
-
-  //image(context.userImage(), 0, 0, width, height);
 
   image(context.rgbImage(), 0, 0, width, height);
 
@@ -116,9 +137,18 @@ void draw()
   head.lerp(neck, 0.5);
 
   if(poses.update(true, head, lhand, rhand)) {
-    // Player is in position!!!!
-    println("Player is done! Now we take a picture.");
-    exit();
+    println("Advanced to next pose...");
+    
+    // Take snapshot of current image and player skeleton
+    images.add(context.rgbImage());
+    skeletons.add(new Skeleton(context, userId));
+    
+    if(poses.complete()) {
+      // Game over!!!!
+      println("Player is done! Now we take a picture.");
+      println("We have " + images.size() + " images and " + skeletons.size() + " skeletons to process.");
+      exit();
+    }
   }
 }
 
@@ -175,19 +205,13 @@ void drawLimb(SimpleOpenNI context, int userId, int joint1, int  joint2) {
 
 void onNewUser(SimpleOpenNI curContext, int userId)
 {
-  println("onNewUser - userId: " + userId);
-  println("\tstart tracking skeleton");
+  println("New user: " + userId);
 
   curContext.startTrackingSkeleton(userId);
 }
 
 void onLostUser(SimpleOpenNI curContext, int userId)
 {
-  println("onLostUser - userId: " + userId);
-}
-
-void onVisibleUser(SimpleOpenNI curContext, int userId)
-{
-  //println("onVisibleUser - userId: " + userId);
+  println("Lost user: " + userId);
 }
 

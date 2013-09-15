@@ -31,6 +31,9 @@ Prank prank;
 int finishTime = 0;
 int setup = 0;
 
+boolean userSeen;
+boolean initialized;
+
 void setup()
 {
   println("Starting up...");
@@ -40,6 +43,20 @@ void setup()
   
   font = createFont("Droid Sans", 32);
   textFont(font);
+
+  skeletons = new ArrayList<Skeleton>();
+  images = new ArrayList<PImage>();
+  
+  state = GameState.SPLASH_SCREEN;
+  
+  splash_screen = loadImage("splash.png");
+  check_results = loadImage("CheckResults.png");
+  
+  initialized = false;
+  userSeen = false;
+}
+
+void initialize() {
 
   print("Starting OpenNI...");
   
@@ -104,17 +121,11 @@ void setup()
       new Marker("L", -700, 0, 1500), 
       new Marker("R", 180, 0, 1500)
   ));
-  
-  skeletons = new ArrayList<Skeleton>();
-  images = new ArrayList<PImage>();
-  
-  state = GameState.SPLASH_SCREEN;
-  
-  splash_screen = loadImage("splash.png");
-  check_results = loadImage("CheckResults.png");
 
   prank = new Prank(this);
   prank.intro();
+  
+  initialized = true;
 }
 
 void draw() {
@@ -123,8 +134,14 @@ void draw() {
   case SPLASH_SCREEN:
     drawSplashScreen();
     
-    // update the cam
-    context.update();
+    if(millis() > 5000) {
+      if(!initialized) {
+        initialize();
+        return;
+      }
+      // update the cam
+      context.update();
+    }
     break;
     
   case CAPTURE_POSES:
@@ -143,6 +160,20 @@ void draw() {
 
 void drawSplashScreen() {
   image(splash_screen, 0, 0, width, height);
+  
+  drawSightIndicator(userSeen);
+  
+}
+
+void drawSightIndicator(boolean seen) {
+    if(seen) {
+      fill(0, 255, 0);
+      stroke(100, 255, 100);
+    } else {
+      fill(255, 0, 0);
+      stroke(255, 100, 100);
+    }
+    ellipse(width - 50, height - 50, 40, 40);
 }
 
 void drawCheckResultsScreen() {
@@ -163,6 +194,8 @@ void drawPoseCapture()
   context.update();
 
   image(context.rgbImage(), 0, 0, width, height);
+
+  drawSightIndicator(userSeen);
 
   // draw the skeleton if it's available
   int[] userList = context.getUsers();
@@ -271,10 +304,9 @@ void onNewUser(SimpleOpenNI curContext, int userId)
 {
   println("New user: " + userId);
 
-  if((millis() - setup) > 5000) {
-    if(state == GameState.SPLASH_SCREEN) {
-      state = GameState.CAPTURE_POSES;
-    }
+  if(state == GameState.SPLASH_SCREEN) {
+    userSeen = true;
+    state = GameState.CAPTURE_POSES;
   }
   
   curContext.startTrackingSkeleton(userId);
@@ -283,5 +315,6 @@ void onNewUser(SimpleOpenNI curContext, int userId)
 void onLostUser(SimpleOpenNI curContext, int userId)
 {
   println("Lost user: " + userId);
+  userSeen = false;
 }
 

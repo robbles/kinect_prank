@@ -35,21 +35,24 @@ class PositionGoal {
       ellipse(this.screen.x, this.screen.y, this.screenWidth, this.screenWidth);
       
       fill(fill, 200);
-      text(this.label, this.screen.x - this.labelWidth / 2.0, this.screen.y - this.screenWidth / 2);
+      text(this.label, this.screen.x - this.labelWidth / 2.0, this.screen.y - this.screenWidth / 2 - 10.0);
     }
   }
 }
 
 class Pose {
+  String instructions;
   PositionGoal headGoal, lhandGoal, rhandGoal;
 
-  Pose(PositionGoal headGoal, PositionGoal lhandGoal, PositionGoal rhandGoal) {
+  Pose(String instructions, PositionGoal headGoal, PositionGoal lhandGoal, PositionGoal rhandGoal) {
+    this.instructions = instructions;
     this.headGoal = headGoal;
     this.lhandGoal = lhandGoal;
     this.rhandGoal = rhandGoal;
   }
 
   void draw() {
+    text(this.instructions, width / 2.0 - textWidth(this.instructions) / 2.0, height - 50);
     this.headGoal.draw(false);
     this.lhandGoal.draw(false);
     this.rhandGoal.draw(false);
@@ -68,6 +71,66 @@ class Pose {
     this.lhandGoal.draw(lhandTouching);
 
     return headTouching && rhandTouching && lhandTouching;
+  }
+}
+
+class PoseSeries {
+  ArrayList<Pose> poses;
+  Pose current;
+  int timeout;
+  long poseHit;
+ 
+  PoseSeries(int timeout) {
+    this.poses = new ArrayList<Pose>();
+    this.timeout = timeout;
+    this.poseHit = 0;
+  }
+  
+  void add(Pose pose) {
+    if(this.current == null) {
+      this.current = pose;
+      return;
+    }
+    this.poses.add(pose);
+  }
+  
+  void update() {
+    update(false, null, null, null);
+  }
+  
+  boolean update(boolean playerVisible, PVector head, PVector lhand, PVector rhand) {
+    if(!playerVisible) {
+      this.current.draw();
+      return false;
+    }
+    if(this.current.checkAndDraw(head, lhand, rhand)) {
+      // Player is in position
+      if(this.poseHit == 0) {
+        // Player just got into position
+        this.poseHit = millis();
+      } else {
+        // Player is remaining in position
+        if(millis() - this.poseHit > this.timeout) {
+          this.poseHit = 0;
+          return advanceToNextPose();
+        } else {
+          println("Waiting for player to hold pose...");
+        }
+      }
+    }
+    return false;
+  }
+  
+  boolean advanceToNextPose() {
+    println("Advancing to next pose!");
+    
+    if(this.poses.size() == 0) {
+      // We're finished!
+      return true;  
+    }
+    
+    this.current = this.poses.remove(0);
+    return false;
   }
 }
 

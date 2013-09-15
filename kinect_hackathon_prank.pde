@@ -18,7 +18,7 @@ PFont font;
 // Convert between Kinect resolution and graphics display
 float SCALE_FACTOR = 1024.0 / 640.0;
 
-Pose pose1;
+PoseSeries poses;
 
 void setup()
 {
@@ -52,15 +52,25 @@ void setup()
   // enable RGB image capture
   context.enableRGB();
 
-  // Setup first pose
-  pose1 = new Pose(
-    // head
-    new PositionGoal("HEAD", 0, 500, 1500), 
-    // left hand
-    new PositionGoal("LEFT HAND", -400, 300, 1500), 
-    // right hand
-    new PositionGoal("RIGHT HAND", 400, 300, 1500)
-    );
+  // Setup series of poses with a delay in between each one
+  poses = new PoseSeries(1000);
+  poses.add(new Pose("Line up your head and hands with the red circles",
+      // head
+      new PositionGoal("HEAD", 0, 500, 1500), 
+      // left hand
+      new PositionGoal("LEFT HAND", -400, 300, 1500), 
+      // right hand
+      new PositionGoal("RIGHT HAND", 400, 300, 1500)
+  ));
+  poses.add(new Pose("Place your arms at your sides",
+      // head
+      new PositionGoal("HEAD", 0, 500, 1500), 
+      // left hand
+      new PositionGoal("LEFT HAND", -400, -100, 1500), 
+      // right hand
+      new PositionGoal("RIGHT HAND", 400, -100, 1500)
+  ));
+    
 }
 
 void draw()
@@ -79,12 +89,12 @@ void draw()
   int[] userList = context.getUsers();
   if(userList.length == 0) {
     // Wait until player enters the scene
-    pose1.draw();
+    poses.update();
     return;
   }
   int userId = userList[0];
   if(!context.isTrackingSkeleton(userId)) {
-    pose1.draw();
+    poses.update();
     return;
   }
   
@@ -105,9 +115,10 @@ void draw()
   // Adjust head pos to halfway point between top of head and neck
   head.lerp(neck, 0.5);
 
-  if(pose1.checkAndDraw(head, lhand, rhand)) {
+  if(poses.update(true, head, lhand, rhand)) {
     // Player is in position!!!!
-    
+    println("Player is done! Now we take a picture.");
+    exit();
   }
 }
 
